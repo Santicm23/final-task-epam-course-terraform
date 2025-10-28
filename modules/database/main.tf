@@ -36,6 +36,7 @@ module "mysql_db" {
 
   tags = merge({
     Name = "mysql-rds-${var.project_name}-${var.env}"
+    Role = "database"
   }, var.tags)
 }
 

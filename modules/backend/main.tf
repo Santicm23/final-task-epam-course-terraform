@@ -129,5 +129,6 @@ resource "aws_instance" "backend_nodes" {
 
   tags = merge(var.tags, {
     Name = "backend-node${count.index}-${var.project_name}-${var.env}"
+    Role = "backend"
   })
 }

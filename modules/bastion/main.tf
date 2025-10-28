@@ -57,5 +57,6 @@ resource "aws_instance" "bastion" {
 
   tags = merge({
     Name = "bastion-${var.project_name}-${var.env}"
+    Role = "bastion"
   }, var.tags)
 }

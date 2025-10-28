@@ -128,5 +128,6 @@ resource "aws_instance" "frontend_nodes" {
 
   tags = merge(var.tags, {
     Name = "frontend-node${count.index}-${var.project_name}-${var.env}"
+    Role = "frontend"
   })
 }
