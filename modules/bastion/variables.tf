@@ -24,6 +24,11 @@ variable "ami_id" {
   type        = string
 }
 
+variable "public_key_path" {
+  description = "The path to the public key for SSH access."
+  type        = string
+}
+
 variable "tags" {
   description = "A map of tags to assign to the resource."
   type        = map(string)

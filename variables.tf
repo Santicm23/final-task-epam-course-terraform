@@ -9,3 +9,8 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "public_key_path" {
+  description = "The file path to the public key used for encryption."
+  type        = string
+}

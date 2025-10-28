@@ -77,6 +77,14 @@ resource "aws_security_group" "frontend_nodes_sg" {
   vpc_id      = var.vpc_id
 
   ingress {
+    description     = "Allow SSH from bastion SG"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [var.bastion_sg]
+  }
+
+  ingress {
     description     = "Allow HTTP from ALB"
     from_port       = 80
     to_port         = 80
@@ -97,54 +105,20 @@ resource "aws_security_group" "frontend_nodes_sg" {
   })
 }
 
+resource "aws_key_pair" "key_pair" {
+  key_name   = "frontend-key-${var.project_name}-${var.env}"
+  public_key = file(var.public_key_path)
+}
+
 resource "aws_instance" "frontend_nodes" {
   count         = 2
   ami           = var.ami_id
   instance_type = "t3.micro"
 
+  key_name = aws_key_pair.key_pair.key_name
+
   subnet_id              = var.private_subnet_ids[count.index % length(var.private_subnet_ids)]
   vpc_security_group_ids = [aws_security_group.frontend_nodes_sg.id]
-
-  user_data = <<-EOF
-             #!/bin/bash
-             exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-
-             echo "Starting user data script..."
-             apt-get update -y
-             apt-get install -y nginx
-
-             # Crear página web con información de la instancia
-             cat > /var/www/html/index.html << EOL
-             <!DOCTYPE html>
-             <html>
-             <head>
-                 <title>Instance ${count.index + 1}</title>
-                 <style>
-                     body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
-                     .container { background: #f0f0f0; padding: 20px; border-radius: 10px; }
-                 </style>
-             </head>
-             <body>
-                 <div class="container">
-                     <h1>Hello from Instance ${count.index + 1}</h1>
-                     <p>Server: $(hostname)</p>
-                     <p>IP: $(hostname -I)</p>
-                     <p>Date: $(date)</p>
-                 </div>
-             </body>
-             </html>
-             EOL
-
-             # Configurar nginx
-             systemctl enable nginx
-             systemctl start nginx
-
-             # Verificar que nginx está corriendo
-             systemctl status nginx
-
-             echo "User data script completed successfully"
-             EOF
-
 
   root_block_device {
     volume_size           = 10    # 10 GB

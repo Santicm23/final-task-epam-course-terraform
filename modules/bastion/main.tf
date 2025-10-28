@@ -1,7 +1,25 @@
+data "http" "my_ip" {
+  url = "https://ipv4.icanhazip.com"
+}
+
+locals {
+  # Get my public IP address dynamically
+  my_ip = chomp(data.http.my_ip.response_body)
+}
+
+
 resource "aws_security_group" "bastion_sg" {
   name        = "bastion-sg-${var.project_name}-${var.env}"
   description = "Security group for bastion"
   vpc_id      = var.vpc_id
+
+  ingress {
+    description = "Allow SSH from trusted IPs"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["${local.my_ip}/32"]
+  }
 
   egress {
     description = "Allow all outbound"
@@ -16,30 +34,9 @@ resource "aws_security_group" "bastion_sg" {
   }, var.tags)
 }
 
-
-resource "aws_iam_role" "bastion_role" {
-  name = "bastion-role-${var.project_name}-${var.env}"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      }
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "ssm_policy" {
-  role       = aws_iam_role.bastion_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-resource "aws_iam_instance_profile" "bastion_profile" {
-  name = "bastion-profile-${var.project_name}-${var.env}"
-  role = aws_iam_role.bastion_role.name
+resource "aws_key_pair" "key_pair" {
+  key_name   = "bastion-key-${var.project_name}-${var.env}"
+  public_key = file(var.public_key_path)
 }
 
 resource "aws_instance" "bastion" {
@@ -48,7 +45,9 @@ resource "aws_instance" "bastion" {
 
   subnet_id              = var.public_subnet_ids[1]
   vpc_security_group_ids = [aws_security_group.bastion_sg.id]
-  iam_instance_profile   = aws_iam_instance_profile.bastion_profile.name
+
+  associate_public_ip_address = true
+  key_name                    = aws_key_pair.key_pair.key_name
 
   root_block_device {
     volume_size           = 10    # 10 GB
@@ -58,14 +57,5 @@ resource "aws_instance" "bastion" {
 
   tags = merge({
     Name = "bastion-${var.project_name}-${var.env}"
-  }, var.tags)
-}
-
-resource "aws_eip" "this" {
-  domain   = "vpc"
-  instance = aws_instance.bastion.id
-
-  tags = merge({
-    Name = "bastion-eip-${var.project_name}-${var.env}"
   }, var.tags)
 }

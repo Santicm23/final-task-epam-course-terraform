@@ -59,6 +59,8 @@ module "frontend" {
   public_subnet_ids  = module.vpc.public_subnets
   private_subnet_ids = module.vpc.private_subnets
   ami_id             = data.aws_ami.ubuntu.id
+  bastion_sg         = module.bastion.sg_id
+  public_key_path    = var.public_key_path
 
   tags = local.project_tags
 }
@@ -74,6 +76,8 @@ module "backend" {
   private_subnet_ids = module.vpc.private_subnets
   ami_id             = data.aws_ami.ubuntu.id
   frontend_sg_id     = module.frontend.nodes_sg_id
+  bastion_sg         = module.bastion.sg_id
+  public_key_path    = var.public_key_path
 
   tags = local.project_tags
 }
@@ -89,9 +93,24 @@ module "database" {
   private_subnet_ids = module.vpc.private_subnets
   backend_sg_id      = module.backend.nodes_sg_id
 
-  db_name  = "final-project-db"
+  db_name  = "FinalProjectDB"
   username = var.db_user_name
   password = var.db_password
+
+  tags = local.project_tags
+}
+
+# ---- Bastion Host Config ---- #\
+module "bastion" {
+  source = "./modules/bastion"
+
+  env          = local.env
+  project_name = local.project_name
+
+  vpc_id            = module.vpc.vpc_id
+  public_subnet_ids = module.vpc.public_subnets
+  ami_id            = data.aws_ami.ubuntu.id
+  public_key_path   = var.public_key_path
 
   tags = local.project_tags
 }
