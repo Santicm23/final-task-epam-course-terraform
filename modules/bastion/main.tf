@@ -1,13 +1,3 @@
-data "http" "my_ip" {
-  url = "https://ipv4.icanhazip.com"
-}
-
-locals {
-  # Get my public IP address dynamically
-  my_ip = chomp(data.http.my_ip.response_body)
-}
-
-
 resource "aws_security_group" "bastion_sg" {
   name        = "bastion-sg-${var.project_name}-${var.env}"
   description = "Security group for bastion"
@@ -18,7 +8,7 @@ resource "aws_security_group" "bastion_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${local.my_ip}/32"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
