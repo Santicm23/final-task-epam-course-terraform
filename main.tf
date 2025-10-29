@@ -73,6 +73,7 @@ module "backend" {
   project_name = local.project_name
 
   vpc_id             = module.vpc.vpc_id
+  public_subnet_ids  = module.vpc.public_subnets
   private_subnet_ids = module.vpc.private_subnets
   ami_id             = data.aws_ami.ubuntu.id
   frontend_sg_id     = module.frontend.nodes_sg_id

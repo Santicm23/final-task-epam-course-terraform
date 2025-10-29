@@ -3,24 +3,26 @@ module "alb_backend" {
 
   name    = "alb-back-${var.project_name}-${var.env}"
   vpc_id  = var.vpc_id
-  subnets = var.private_subnet_ids
+  subnets = var.public_subnet_ids
 
   enable_deletion_protection = false
 
   security_group_ingress_rules = {
     all_http = {
-      from_port                    = 80
-      to_port                      = 80
-      ip_protocol                  = "tcp"
-      description                  = "HTTP web traffic"
-      referenced_security_group_id = var.frontend_sg_id
+      from_port   = 80
+      to_port     = 80
+      ip_protocol = "tcp"
+      description = "HTTP web traffic"
+      cidr_ipv4   = "0.0.0.0/0"
+      # referenced_security_group_id = var.frontend_sg_id
     }
     all_https = {
-      from_port                    = 443
-      to_port                      = 443
-      ip_protocol                  = "tcp"
-      description                  = "HTTPS web traffic"
-      referenced_security_group_id = var.frontend_sg_id
+      from_port   = 443
+      to_port     = 443
+      ip_protocol = "tcp"
+      description = "HTTPS web traffic"
+      cidr_ipv4   = "0.0.0.0/0"
+      # referenced_security_group_id = var.frontend_sg_id
     }
   }
   security_group_egress_rules = {

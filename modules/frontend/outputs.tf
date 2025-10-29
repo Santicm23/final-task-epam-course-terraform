@@ -3,5 +3,5 @@ output "alb_url" {
 }
 
 output "nodes_sg_id" {
-  value = module.alb_frontend.security_group_id
+  value = aws_security_group.frontend_nodes_sg.id
 }
