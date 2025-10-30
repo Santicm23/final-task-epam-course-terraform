@@ -3,6 +3,7 @@ provider "aws" {
 }
 
 locals {
+  region       = "us-east-2"
   env          = terraform.workspace
   project_name = "final-project"
   project_tags = {
@@ -114,4 +115,20 @@ module "bastion" {
   public_key_path   = var.public_key_path
 
   tags = local.project_tags
+}
+
+# ---- Monitoring Config ---- #
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  env          = local.env
+  aws_region   = local.region
+  project_name = local.project_name
+
+  frontend_alb_arn_suffix = module.frontend.alb_arn_suffix
+  backend_alb_arn_suffix  = module.backend.alb_arn_suffix
+
+  rds_instance_id       = module.database.rds_instance_id
+  frontend_instance_ids = module.frontend.instance_ids
+  backend_instance_ids  = module.backend.instance_ids
 }

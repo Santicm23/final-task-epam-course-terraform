@@ -5,3 +5,11 @@ output "nodes_sg_id" {
 output "alb_url" {
   value = module.alb_backend.dns_name
 }
+
+output "alb_arn_suffix" {
+  value = module.alb_backend.arn_suffix
+}
+
+output "instance_ids" {
+  value = aws_instance.backend_nodes.*.id
+}

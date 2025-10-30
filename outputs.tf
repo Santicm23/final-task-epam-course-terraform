@@ -13,3 +13,7 @@ output "rds_endpoint" {
 output "bastion_ip" {
   value = module.bastion.bastion_ip
 }
+
+output "dashboard_url" {
+  value = module.monitoring.dashboard_url
+}
